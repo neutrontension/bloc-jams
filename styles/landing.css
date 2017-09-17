@@ -3,8 +3,13 @@ body.landing {
 }
 
 .hero-content {
+<<<<<<< HEAD
     position: relative; /* positioning will be explained in a resource */
     min-height: 600px;  /* hero content element must be _at least_ 600 pixels */
+=======
+    position: relative;
+    min-height: 600px;
+>>>>>>> checkpoint-6-html-css-album-view
     background-image: url(../assets/images/bloc_jams_bg.jpg);
     background-repeat: no-repeat;
     background-position: center center;
@@ -12,6 +17,7 @@ body.landing {
 }
 
 .hero-content .hero-title {
+<<<<<<< HEAD
     position: absolute;             /* positioning will be explained in a resource */
     top: 40%;                       /* positioning will be explained in a resource */
     -webkit-transform: translateY(-50%); /* vendor prefixes for CSS properties that haven't been adopted by CSS3 */
@@ -25,6 +31,20 @@ body.landing {
     text-transform: uppercase;      /* transforms the text to be all uppercase lettering */
     letter-spacing: 0.5rem;         /* puts 0.5 root ems worth of space between each letter */
     text-shadow: 1px 1px 0px rgb(58,23,63); /* creates a shadow underneath the text for readability over the image */
+=======
+    position: absolute;
+    top: 40%;
+    -webkit-transform: translateY(-50%);
+    -moz-transform: translateY(-50%);
+    transform: translateY(-50%);
+    width: 100%;
+    text-align: center;
+    font-size: 4rem;
+    font-weight: 300;
+    text-transform: uppercase;
+    letter-spacing: 0.5rem;
+    text-shadow: 1px 1px 0px rgb(58,23,63);
+>>>>>>> checkpoint-6-html-css-album-view
 }
 
 .selling-points {
@@ -44,6 +64,10 @@ body.landing {
 .ion-music-note,
 .ion-radio-waves,
 .ion-iphone {
+<<<<<<< HEAD
     color: rgb(233, 50, 117);
+=======
+    color: rgb(233,50,117);
+>>>>>>> checkpoint-6-html-css-album-view
     font-size: 5rem;
 }

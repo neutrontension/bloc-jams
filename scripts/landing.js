@@ -1,31 +1,30 @@
-var pointsArray = document.getElementsByClassName('point'); //getElementsByClassName - point class
+// #5 dom selector that gets .point elements no longer needed because of #7
+ var animatePoints = function() {
 
-var animatePoints = function(points) {
-
-    var revealPoint = function (index) {
-          points[index].style.opacity = 1;
-          points[index].style.transform = "scaleX(1) translateY(0)";
-          points[index].style.msTransform = "scaleX(1) translateY(0)";
-          points[index].style.WebkitTransform = "scaleX(1) translateY(0)";
-    }
-
-      for (var i = 0; i < points.length; i++) {
-        revealPoint(i);
-    }
+   var revealPoint = function() {
+       // #7
+       $(this).css({
+           opacity: 1,
+           transform: 'scaleX(1) translateY(0)'
+       });
+    };
+    // #6 
+    $.each($('.point'), revealPoint);
 };
 
-window.onload = function() {
-  // Automatically animate the points on a tall screen where scrolling can't trigger the animation
-   if (window.innerHeight > 950) {
-       animatePoints(pointsArray);
-   }
-
-     var sellingPoints = document.getElementsByClassName('selling-points')[0];
-     var scrollDistance = sellingPoints.getBoundingClientRect().top - window.innerHeight + 200;
-
-  window.addEventListener('scroll', function(event) {
-    if (document.documentElement.scrollTop || document.body.scrollTop >= scrollDistance) {
-        animatePoints(pointsArray);
+$(window).load(function() {
+    // #1 Object's height. Since we pass no arguments to the function, we get the height
+    if ($(window).height() > 950) {
+        animatePoints();
     }
-  });
-}
+
+    // #2 Searches for .selling-points and sets object height
+    var scrollDistance = $('.selling-points').offset().top - $(window).height() + 200;
+    // #3 Scroll is an event listener that takes a function as an argument
+    $(window).scroll(function(event) {
+        // #4 Animates points when scroll occurs
+        if ($(window).scrollTop() >= scrollDistance) {
+            animatePoints();
+        }
+    });
+});

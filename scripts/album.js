@@ -36,7 +36,7 @@ var createSongRow = function(songNumber, songName, songLength) {
        '<tr class="album-view-song-item">'
      + '  <td class="song-item-number" data-song-number="' + songNumber + '">' + songNumber + '</td>'
      + '  <td class="song-item-title">' + songName + '</td>'
-     + '  <td class="song-item-duration">' + songLength + '</td>'
+     + '  <td class="song-item-duration">' + filterTimeCode(songLength) + '</td>'
      + '</tr>'
      ;
 
@@ -127,15 +127,42 @@ var setCurrentAlbum = function(album) {
     }
 };
 
+
+var setCurrentTimeInPlayerBar = function(currentTime) { //current playing time of song
+    var $currentTimeElement = $('.seek-control .current-time');
+    $currentTimeElement.text(currentTime);
+};
+
+var setTotalTimeInPlayerBar = function(totalTime) { //max/ total time of song
+    var $totalTimeElement = $('.seek-control .total-time');
+    $totalTimeElement.text(totalTime);
+};
+
+var filterTimeCode = function(timeInSeconds) { //converts time (given in total seconds) to 'X:XX' formats, in string
+    var seconds = Number.parseFloat(timeInSeconds);
+    var wholeSeconds = Math.floor(seconds);
+    var minutes = Math.floor(wholeSeconds / 60);
+
+    var remainingSeconds = wholeSeconds % 60;
+    var output = minutes + ':';
+
+    if (remainingSeconds < 10) {
+        output += '0';
+    }
+
+    output += remainingSeconds;
+    return output;
+};
+
 var updateSeekBarWhileSongPlays = function() {
     if (currentSoundFile) {
-        // #10
-        currentSoundFile.bind('timeupdate', function(event) {
-            // #11
-            var seekBarFillRatio = this.getTime() / this.getDuration();
-            var $seekBar = $('.seek-control .seek-bar');
-
-            updateSeekPercentage($seekBar, seekBarFillRatio);
+      currentSoundFile.bind('timeupdate', function(event) { //buzz's method timeupdate, eventListener. Something about binding them?
+          var currentTime = this.getTime(); //buzz's getTime method (current time). The result will be displayed and upated periodically!
+          var songLength = this.getDuration(); //total duration
+          var seekBarFillRatio = currentTime / songLength; //gives the ratio of seek-bar based on current time vs total time
+          var $seekBar = $('.seek-control .seek-bar'); //gets seek bar
+          updateSeekPercentage($seekBar, seekBarFillRatio); //calls te updateSeekPercentage function
+          setCurrentTimeInPlayerBar(filterTimeCode(currentTime)); //sets up the time in player bar
         });
     }
 };
@@ -194,16 +221,18 @@ var setupSeekBars = function() {
     });
 };
 
-var trackIndex = function(album, song) {
-    return album.songs.indexOf(song);
-};
-
 var updatePlayerBarSong = function() {
 
     $('.currently-playing .song-name').text(currentSongFromAlbum.title);
     $('.currently-playing .artist-name').text(currentAlbum.artist);
     $('.currently-playing .artist-song-mobile').text(currentSongFromAlbum.title + " - " + currentAlbum.artist);
     $('.main-controls .play-pause').html(playerBarPauseButton);
+
+    setTotalTimeInPlayerBar(filterTimeCode(currentSongFromAlbum.length));
+};
+
+var trackIndex = function(album, song) {
+    return album.songs.indexOf(song);
 };
 
 var nextSong = function() {

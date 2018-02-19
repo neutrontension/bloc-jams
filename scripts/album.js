@@ -43,6 +43,7 @@ var createSongRow = function(songNumber, songName, songLength) {
      var $row = $(template);
 
      var clickHandler = function() {
+
              var songNumber = parseInt($(this).attr('data-song-number'));
 
              if (currentlyPlayingSongNumber !== null) {
@@ -50,12 +51,8 @@ var createSongRow = function(songNumber, songName, songLength) {
      		             var currentlyPlayingCell = getSongNumberCell(currentlyPlayingSongNumber);
                      currentlyPlayingCell.html(currentlyPlayingSongNumber);
      	       }
-
      	       if (currentlyPlayingSongNumber !== songNumber) {
                      setSong(songNumber);
-                     $(this).html(pauseButtonTemplate);
-                     $('.main-controls .play-pause').html(playerBarPauseButton);
-                     updatePlayerBarSong();
                      currentSoundFile.play();
                      updateSeekBarWhileSongPlays();
                      currentSongFromAlbum = currentAlbum.songs[songNumber - 1];
@@ -65,6 +62,8 @@ var createSongRow = function(songNumber, songName, songLength) {
                      $volumeFill.width(currentVolume + '%');
                      $volumeThumb.css({left: currentVolume + '%'});
 
+                     $(this).html(pauseButtonTemplate);
+                     updatePlayerBarSong();
      	       } else if (currentlyPlayingSongNumber === songNumber) {
                  if (currentSoundFile.isPaused()) {
                      $(this).html(pauseButtonTemplate);
@@ -126,6 +125,33 @@ var setCurrentAlbum = function(album) {
          var $newRow = createSongRow(i + 1, album.songs[i].title, album.songs[i].duration);
          $albumSongList.append($newRow);
     }
+};
+
+
+var setCurrentTimeInPlayerBar = function(currentTime) { //current playing time of song
+    var $currentTimeElement = $('.seek-control .current-time');
+    $currentTimeElement.text(currentTime);
+};
+
+var setTotalTimeInPlayerBar = function(totalTime) { //max/ total time of song
+    var $totalTimeElement = $('.seek-control .total-time');
+    $totalTimeElement.text(totalTime);
+};
+
+var filterTimeCode = function(timeInSeconds) { //converts time (given in total seconds) to 'X:XX' formats, in string
+    var seconds = Number.parseFloat(timeInSeconds);
+    var wholeSeconds = Math.floor(seconds);
+    var minutes = Math.floor(wholeSeconds / 60);
+
+    var remainingSeconds = wholeSeconds % 60;
+    var output = minutes + ':';
+
+    if (remainingSeconds < 10) {
+        output += '0';
+    }
+
+    output += remainingSeconds;
+    return output;
 };
 
 var updateSeekBarWhileSongPlays = function() {
@@ -195,60 +221,21 @@ var setupSeekBars = function() {
     });
 };
 
-var filterTimeCode = function(timeInSeconds) { //converts time (given in total seconds) to 'X:XX' formats, in string
-    var seconds = Number.parseFloat(timeInSeconds);
-    var wholeSeconds = Math.floor(seconds);
-    var minutes = Math.floor(wholeSeconds / 60);
+var updatePlayerBarSong = function() {
 
-    var remainingSeconds = wholeSeconds % 60;
-    var output = minutes + ':';
+    $('.currently-playing .song-name').text(currentSongFromAlbum.title);
+    $('.currently-playing .artist-name').text(currentAlbum.artist);
+    $('.currently-playing .artist-song-mobile').text(currentSongFromAlbum.title + " - " + currentAlbum.artist);
+    $('.main-controls .play-pause').html(playerBarPauseButton);
 
-    if (remainingSeconds < 10) {
-        output += '0';
-    }
-
-    output += remainingSeconds;
-    return output;
-};
-
-var setCurrentTimeInPlayerBar = function(currentTime) { //current playing time of song
-    if (currentSoundFile) {
-        filterTimeCode
-        $('.current-time').text(filterTimeCode(currentTime));
-  }
-};
-
-var setTotalTimeInPlayerBar = function(totalTime) { //max/ total time of song
-    if (currentSoundFile) {
-        $('.total-time').text(filterTimeCode(totalTime));
-    }
+    setTotalTimeInPlayerBar(filterTimeCode(currentSongFromAlbum.length));
 };
 
 var trackIndex = function(album, song) {
     return album.songs.indexOf(song);
 };
 
-var togglePlayFromPlayerBar = function() { //switches button between play/pause
-
-    var $currentlyPlayingCell = getSongNumberCell(currentlyPlayingSongNumber); //fetch what song number it is playing now
-
-    if (currentSoundFile.isPaused()) { //if paused, then do this:
-        $currentlyPlayingCell.html(pauseButtonTemplate); //there is a song playing, then it was paused. When clicked again, it plays. Now when a song is playing, it displays pause button
-        $(this).html(playerBarPauseButton); //also updates player bar's to display pause button for the same reason above
-        currentSoundFile.play(); //because it is paused, clicking it again will play it
-    } else { //if song is playing (if song is playing, currentSoundFile is true! Does that mean it is false if it isPaused()?)
-        $currentlyPlayingCell.html(playButtonTemplate); //opposite of above
-        $(this).html(playerBarPlayButton);
-        currentSoundFile.pause();
-    }
-};
-
 var nextSong = function() {
-
-    var getLastSongNumber = function(index) {
-        return index === 0?currentAlbum.songs.length : index;
-    };
-
     var currentSongIndex = trackIndex(currentAlbum, currentSongFromAlbum);
     // Note that we're _incrementing_ the song here
     currentSongIndex++;
@@ -257,62 +244,65 @@ var nextSong = function() {
         currentSongIndex = 0;
     }
 
+    // Save the last song number before changing it
+    var lastSongNumber = currentlyPlayingSongNumber;
+
+    // Set a new current song
     setSong(currentSongIndex + 1);
+    currentSoundFile.play();
+    updateSeekBarWhileSongPlays();
 
-    $('.currently-playing .song-name').text(currentSongFromAlbum.title);
-    $('.currently-playing .artist-name').text(currentAlbum.artist);
-    $('.currently-playing .artist-song-mobile').text(currentSongFromAlbum.title + " - " + currentAlbum.title);
-    $('.main-controls .play-pause').html(playerBarPauseButton);
+    // Update the Player Bar information
+    updatePlayerBarSong();
 
-    var lastSongNumber = getLastSongNumber(currentSongIndex);
-    var $nextSongNumberCell = getSongNumberCell(currentlyPlayingSongNumber);
-    var $lastSongNumberCell = getSongNumberCell(lastSongNumber);
+    var $nextSongNumberCell = $('.song-item-number[data-song-number="' + currentlyPlayingSongNumber + '"]');
+    var $lastSongNumberCell = $('.song-item-number[data-song-number="' + lastSongNumber + '"]');
 
     $nextSongNumberCell.html(pauseButtonTemplate);
     $lastSongNumberCell.html(lastSongNumber);
-
-    currentSoundFile.play();
-    updatePlayerBarSong();
-    updateSeekBarWhileSongPlays();
 };
 
 var previousSong = function() {
-  var getLastSongNumber = function(index) {
-      return index === (currentAlbum.songs.length - 1) ? 1 : index + 2;
-  };
+    var currentSongIndex = trackIndex(currentAlbum, currentSongFromAlbum);
+    // Note that we're _decrementing_ the index here
+    currentSongIndex--;
 
-  var currentSongIndex = trackIndex(currentAlbum, currentSongFromAlbum);
-  currentSongIndex--;
+    if (currentSongIndex < 0) {
+        currentSongIndex = currentAlbum.songs.length - 1;
+    }
 
-  if (currentSongIndex < 0) {
-      currentSongIndex = currentAlbum.songs.length - 1;
-  }
+    // Save the last song number before changing it
+    var lastSongNumber = currentlyPlayingSongNumber;
 
-  setSong(currentSongIndex + 1);
+    // Set a new current song
+    setSong(currentSongIndex + 1);
+    currentSoundFile.play();
+    updateSeekBarWhileSongPlays();
 
-  $('.currently-playing .song-name').text(currentSongFromAlbum.title);
-  $('.currently-playing .artist-name').text(currentAlbum.artist);
-  $('.currently-playing .artist-song-mobile').text(currentSongFromAlbum.title + " - " + currentAlbum.title);
-  $('main-controls .play-pause').html(playerBarPauseButton);
+    // Update the Player Bar information
+    updatePlayerBarSong();
 
-  var lastSongNumber = getLastSongNumber(currentSongIndex);
-  var $previousSongNumberCell = getSongNumberCell(currentlyPlayingSongNumber);
-  var $lastSongNumberCell = getSongNumberCell(lastSongNumber);
+    $('.main-controls .play-pause').html(playerBarPauseButton);
 
-  $previousSongNumberCell.html(pauseButtonTemplate);
-  $lastSongNumberCell.html(lastSongNumber);
+    var $previousSongNumberCell = $('.song-item-number[data-song-number="' + currentlyPlayingSongNumber + '"]');
+    var $lastSongNumberCell = $('.song-item-number[data-song-number="' + lastSongNumber + '"]');
 
-  currentSoundFile.play();
-  updatePlayerBarSong();
-  updateSeekBarWhileSongPlays();
+    $previousSongNumberCell.html(pauseButtonTemplate);
+    $lastSongNumberCell.html(lastSongNumber);
 };
 
-var updatePlayerBarSong = function() {
-    $('.currently-playing .song-name').text(currentSongFromAlbum.title);
-    $('.currently-playing .artist-name').text(currentAlbum.artist);
-    $('.currently-playing .artist-song-mobile').text(currentSongFromAlbum.title + " - " + currentAlbum.artist);
-    $('.main-controls .play-pause').html(playerBarPauseButton);
-    setTotalTimeInPlayerBar(filterTimeCode(currentSongFromAlbum.duration));
+var togglePlayFromPlayerBar = function() { //switches button between play/pause
+    var $currentlyPlayingCell = getSongNumberCell(currentlyPlayingSongNumber); //fetch what song number it is playing now
+
+    if (currentSoundFile.isPaused()) { //if paused, then do this:
+        $currentlyPlayingCell.html(pauseButtonTemplate); //there is a song playing, then it was paused. When clicked again, it plays. Now when a song is playing, it displays pause button
+        $(this).html(playerBarPauseButton); //also updates player bar's to display pause button for the same reason above
+        currentSoundFile.play(); //because it is paused, clicking it again will play it
+    } else if (currentSoundFile) { //if song is playing (if song is playing, currentSoundFile is true! Does that mean it is false if it isPaused()?)
+        $currentlyPlayingCell.html(playButtonTemplate); //opposite of above
+        $(this).html(playerBarPlayButton);
+        currentSoundFile.pause();
+    }
 };
 
 // Album button templates

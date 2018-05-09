@@ -104,7 +104,7 @@
 
 .seek-bar .fill {
     background-color: white;
-    width: 36%;
+    width: 0%;
     height: 0.25rem;
     border-radius: 2px;
 }
